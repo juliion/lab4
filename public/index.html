@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/styles.css">
+    <title>Lab4</title>
+</head>
+<body>
+  <div id="registration">
+      <input id="usernameInput" placeholder="Enter your name" autocomplete="off" />
+      <button id="registerButton">Join Chat</button>
+    </div>
+    <div id="chat" style="display: none;">
+      <ul id="messages"></ul>
+      <form id="form" action="">
+        <input id="input" autocomplete="off" /><button id="sendButton">Send</button>
+      </form>
+    </div>
+      <script src="/socket.io/socket.io.js"></script>
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+      <script>
+        function getRandomColor() {
+          const letters = '0123456789ABCDEF';
+          let color = '#';
+          for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+          }
+          return color;
+        }
+        $(function () {
+            var socket = io();
+            
+            $('#chat').hide();
+            
+            $('#registerButton').click(function () {
+              var username = $('#usernameInput').val();
+              if (username.trim() !== '') {
+                socket.emit('register', username);
+              }
+            });
+
+            socket.on('registrationError', function (errorMessage) {
+              alert(errorMessage);
+            });
+
+            socket.on('chatReady', function () {
+              $('#registration').hide();
+              $('#chat').show();
+            });
+
+            $('form').submit(function () {
+              var message = $('#input').val();
+              socket.emit('chat message', message);
+              $('#input').val('');
+              return false;
+            });
+
+            socket.on('chat message', function (data) {
+              console.log(data);
+              $('#messages').append($('<li>').html('<span class="username" style="color:' + data.color + ';">' + data.username + '</span>: ' + data.message));
+            });
+          });
+      </script>
+</body>
+</html>
